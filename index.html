@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" href="logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -22,15 +22,40 @@
 
   <!-- LOADING SCREEN -->
   <div class="loading-screen" id="loadingScreen">
-    <div class="loading-content">
-      <img src="logo.png" alt="Job Hunters Logo" class="loading-logo" id="loadingLogo" />
-      <h1 class="loading-title" id="loadingTitle">
-        <span class="letter">J</span><span class="letter">o</span><span class="letter">b</span>
-        <span class="letter">&nbsp;</span>
-        <span class="letter">H</span><span class="letter">u</span><span class="letter">n</span>
-        <span class="letter">t</span><span class="letter">e</span><span class="letter">r</span>
-        <span class="letter">s</span>
-      </h1>
+    <div class="loading-container">
+      
+      <!-- Ambient Background Glows -->
+      <div class="glow-sphere glow-sphere-1" aria-hidden="true"></div>
+      <div class="glow-sphere glow-sphere-2" aria-hidden="true"></div>
+      
+      <!-- Center Graphic: Logo and Circular Loader -->
+      <div class="logo-spinner-wrap">
+        <svg class="circular-loader" viewBox="0 0 100 100" aria-hidden="true">
+          <circle class="loader-track" cx="50" cy="50" r="45"></circle>
+          <circle class="loader-hand" cx="50" cy="50" r="45"></circle>
+        </svg>
+        <div class="logo-inner">
+          <img src="logo.png" alt="Job Hunters Logo" class="loading-logo" id="loadingLogo" />
+        </div>
+      </div>
+      
+      <!-- Brand Identity -->
+      <div class="brand-wrap">
+        <h1 class="loading-title">Job Hunters</h1>
+        <p class="loading-tagline">Connecting Talent With Opportunity</p>
+      </div>
+      
+      <!-- Loading Status & Progress Bar -->
+      <div class="loading-progress-wrap">
+        <div class="loading-meta">
+          <span class="loading-status" id="dynamicLoadText">Finding Opportunities...</span>
+          <span class="loading-percentage" id="loadPercentage">0%</span>
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+      </div>
+      
     </div>
   </div>
 
