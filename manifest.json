@@ -1,0 +1,37 @@
+{
+  "name": "Job Hunters Pakistan",
+  "short_name": "Job Hunters",
+  "description": "Apply for job opportunities through Job Hunters Pakistan. Fill out our official application form and our team will get back to you shortly.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#F7F9F8",
+  "theme_color": "#2E5E5B",
+  "orientation": "portrait-primary",
+  "scope": "./",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

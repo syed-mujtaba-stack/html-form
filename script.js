@@ -113,3 +113,16 @@ window.addEventListener('load', () => {
     }, 800); // Matches the 0.8s transition duration in CSS
   }
 });
+
+// Register Service Worker for PWA offline support and installation capability
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(registration => {
+        console.log('[PWA] ServiceWorker registered successfully on scope:', registration.scope);
+      })
+      .catch(error => {
+        console.error('[PWA] ServiceWorker registration failed:', error);
+      });
+  });
+}
