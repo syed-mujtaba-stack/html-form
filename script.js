@@ -110,6 +110,11 @@ window.addEventListener('load', () => {
     // Once transition completes, hide loadingScreen element from layout
     setTimeout(() => {
       loadingScreen.style.display = 'none';
+      
+      // Check and show custom PWA installation prompt
+      if (typeof showPwaPromptIfAvailable === 'function') {
+        showPwaPromptIfAvailable();
+      }
     }, 800); // Matches the 0.8s transition duration in CSS
   }
 });
@@ -126,3 +131,95 @@ if ('serviceWorker' in navigator) {
       });
   });
 }
+
+// ── Custom PWA Installation Prompt Logic ──
+let deferredPrompt;
+const pwaInstallBanner = document.getElementById('pwaInstallBanner');
+const btnPwaInstall = document.getElementById('btnPwaInstall');
+const btnPwaDismiss = document.getElementById('btnPwaDismiss');
+
+// Intercept browser's native install prompt
+window.addEventListener('beforeinstallprompt', (e) => {
+  // Prevent Chrome 67 and earlier from automatically showing the prompt
+  e.preventDefault();
+  // Stash the event so it can be triggered later
+  deferredPrompt = e;
+  console.log('[PWA] beforeinstallprompt event captured');
+  
+  // Show prompt if load transition is already completed
+  const pageWrapper = document.getElementById('pageWrapper');
+  if (pageWrapper && pageWrapper.style.display === 'block') {
+    showPwaPromptIfAvailable();
+  }
+});
+
+// Show the custom premium PWA banner
+function showPwaPromptIfAvailable() {
+  if (!deferredPrompt || !pwaInstallBanner) return;
+
+  // Check localStorage to respect user dismissal choice
+  if (localStorage.getItem('pwaPromptDismissed') === 'true') {
+    return;
+  }
+
+  // Display the banner using flex layout, then slide it in after a small delay
+  pwaInstallBanner.style.display = 'flex';
+  setTimeout(() => {
+    pwaInstallBanner.classList.add('show');
+  }, 100);
+}
+
+// Trigger installation when user clicks "Install App"
+if (btnPwaInstall) {
+  btnPwaInstall.addEventListener('click', () => {
+    if (!deferredPrompt || !pwaInstallBanner) return;
+
+    // Slide banner out
+    pwaInstallBanner.classList.remove('show');
+    setTimeout(() => {
+      pwaInstallBanner.style.display = 'none';
+    }, 600);
+
+    // Show native prompt
+    deferredPrompt.prompt();
+
+    // Check user decision
+    deferredPrompt.userChoice.then((choiceResult) => {
+      if (choiceResult.outcome === 'accepted') {
+        console.log('[PWA] User accepted the installation');
+      } else {
+        console.log('[PWA] User dismissed the installation');
+      }
+      deferredPrompt = null;
+    });
+  });
+}
+
+// Dismiss custom prompt when user clicks "Maybe Later"
+if (btnPwaDismiss) {
+  btnPwaDismiss.addEventListener('click', () => {
+    if (!pwaInstallBanner) return;
+
+    // Slide banner out
+    pwaInstallBanner.classList.remove('show');
+    setTimeout(() => {
+      pwaInstallBanner.style.display = 'none';
+    }, 600);
+
+    // Save choice in localStorage to prevent annoying prompts
+    localStorage.setItem('pwaPromptDismissed', 'true');
+    console.log('[PWA] Install prompt dismissed by user');
+  });
+}
+
+// Handle successful install event
+window.addEventListener('appinstalled', () => {
+  console.log('[PWA] App installed successfully');
+  deferredPrompt = null;
+  if (pwaInstallBanner) {
+    pwaInstallBanner.classList.remove('show');
+    setTimeout(() => {
+      pwaInstallBanner.style.display = 'none';
+    }, 600);
+  }
+});
