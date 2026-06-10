@@ -223,3 +223,292 @@ window.addEventListener('appinstalled', () => {
     }, 600);
   }
 });
+
+// ── FORM VALIDATION & SUBMISSION ──
+const form = document.getElementById('applicationForm');
+const submitBtn = document.getElementById('submitBtn');
+const btnSpinner = document.getElementById('btnSpinner');
+const btnLabel = document.querySelector('.btn-label');
+const btnArrow = document.querySelector('.btn-arrow');
+const successScreen = document.getElementById('successScreen');
+const formCard = document.getElementById('formCard');
+
+// Reference conditional fields
+const refYesRadio = document.getElementById('ref-yes');
+const refNoRadio = document.getElementById('ref-no');
+const referenceBox = document.getElementById('reference-box');
+
+// File upload functionality
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('resumeFile');
+const uploadEmpty = document.getElementById('uploadEmpty');
+const uploadPreview = document.getElementById('uploadPreview');
+const fileName = document.getElementById('fileName');
+const fileSize = document.getElementById('fileSize');
+const removeFileBtn = document.getElementById('removeFile');
+const browseBtn = document.getElementById('browseBtn');
+
+// Handle file selection
+function handleFileSelect(file) {
+  if (file) {
+    // Validate file type
+    const allowedTypes = ['.pdf', '.doc', '.docx'];
+    const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+    
+    if (!allowedTypes.includes(fileExtension)) {
+      alert('Please upload a PDF, DOC, or DOCX file');
+      fileInput.value = '';
+      return;
+    }
+    
+    // Validate file size (5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      alert('File size must be less than 5MB');
+      fileInput.value = '';
+      return;
+    }
+    
+    // Show file preview
+    uploadEmpty.style.display = 'none';
+    uploadPreview.style.display = 'flex';
+    fileName.textContent = file.name;
+    fileSize.textContent = formatFileSize(file.size);
+  }
+}
+
+function formatFileSize(bytes) {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+// File input change event
+if (fileInput) {
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+      handleFileSelect(e.target.files[0]);
+    }
+  });
+}
+
+// Drag and drop events
+if (uploadZone) {
+  uploadZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadZone.classList.add('drag-over');
+  });
+  
+  uploadZone.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('drag-over');
+  });
+  
+  uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('drag-over');
+    
+    if (e.dataTransfer.files.length > 0) {
+      fileInput.files = e.dataTransfer.files;
+      handleFileSelect(e.dataTransfer.files[0]);
+    }
+  });
+}
+
+// Browse button click
+if (browseBtn) {
+  browseBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    fileInput.click();
+  });
+}
+
+// Remove file button
+if (removeFileBtn) {
+  removeFileBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    fileInput.value = '';
+    uploadEmpty.style.display = 'block';
+    uploadPreview.style.display = 'none';
+  });
+}
+
+// Show/hide reference box based on selection
+function toggleReferenceBox() {
+  if (refYesRadio && refYesRadio.checked) {
+    referenceBox.style.display = 'block';
+  } else {
+    referenceBox.style.display = 'none';
+  }
+}
+
+if (refYesRadio && refNoRadio) {
+  refYesRadio.addEventListener('change', toggleReferenceBox);
+  refNoRadio.addEventListener('change', toggleReferenceBox);
+}
+
+// Form validation
+function validateForm() {
+  let isValid = true;
+  const requiredFields = form.querySelectorAll('[required]');
+  
+  requiredFields.forEach(field => {
+    const fieldGroup = field.closest('.field-group') || field.closest('.terms-agree-wrap');
+    const errorMsg = fieldGroup ? fieldGroup.querySelector('.err-msg') : null;
+    
+    // Reset error state
+    if (field.type !== 'radio' && field.type !== 'checkbox') {
+      field.classList.remove('invalid');
+    }
+    if (errorMsg) errorMsg.textContent = '';
+    
+    // Check if field is empty
+    if (field.type === 'radio' || field.type === 'checkbox') {
+      const radioGroup = form.querySelectorAll(`[name="${field.name}"]`);
+      const isChecked = Array.from(radioGroup).some(radio => radio.checked);
+      if (!isChecked) {
+        isValid = false;
+        if (errorMsg) errorMsg.textContent = 'This field is required';
+      }
+    } else if (!field.value.trim()) {
+      isValid = false;
+      field.classList.add('invalid');
+      if (errorMsg) errorMsg.textContent = 'This field is required';
+    }
+    
+    // Email validation
+    if (field.type === 'email' && field.value.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(field.value.trim())) {
+        isValid = false;
+        field.classList.add('invalid');
+        if (errorMsg) errorMsg.textContent = 'Please enter a valid email address';
+      }
+    }
+    
+    // Phone validation (Pakistan format: 0000 0000000)
+    if (field.type === 'tel' && field.value.trim()) {
+      const phoneRegex = /^\d{4}\s\d{7}$/;
+      if (!phoneRegex.test(field.value.trim())) {
+        isValid = false;
+        field.classList.add('invalid');
+        if (errorMsg) errorMsg.textContent = 'Format: 0000 0000000';
+      }
+    }
+    
+    // Date validation (DD-MM-YYYY)
+    if (field.id === 'memberSince' && field.value.trim()) {
+      const dateRegex = /^\d{2}-\d{2}-\d{4}$/;
+      if (!dateRegex.test(field.value.trim())) {
+        isValid = false;
+        field.classList.add('invalid');
+        if (errorMsg) errorMsg.textContent = 'Format: DD-MM-YYYY';
+      }
+    }
+  });
+  
+  // File upload validation
+  const fileInput = document.getElementById('resumeFile');
+  if (fileInput && !fileInput.files.length) {
+    const fileGroup = fileInput.closest('.field-group');
+    const errorMsg = fileGroup ? fileGroup.querySelector('.err-msg') : null;
+    isValid = false;
+    if (errorMsg) errorMsg.textContent = 'Please upload your resume';
+  } else if (fileInput && fileInput.files.length) {
+    const file = fileInput.files[0];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      const fileGroup = fileInput.closest('.field-group');
+      const errorMsg = fileGroup ? fileGroup.querySelector('.err-msg') : null;
+      isValid = false;
+      if (errorMsg) errorMsg.textContent = 'File size must be less than 5MB';
+    }
+  }
+  
+  return isValid;
+}
+
+// Form submission handler
+if (form) {
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Validate form
+    if (!validateForm()) {
+      // Scroll to first error
+      const firstError = form.querySelector('.invalid');
+      if (firstError) {
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+    
+    // Show loading state
+    submitBtn.disabled = true;
+    btnLabel.style.display = 'none';
+    btnArrow.style.display = 'none';
+    btnSpinner.style.display = 'flex';
+    
+    // Prepare form data
+    const formData = new FormData(form);
+    
+    try {
+      const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        body: formData
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // Show success screen
+        form.style.display = 'none';
+        successScreen.style.display = 'flex';
+      } else {
+        throw new Error(result.message || 'Submission failed');
+      }
+    } catch (error) {
+      console.error('Form submission error:', error);
+      alert('There was an error submitting your application. Please try again or contact us directly at jobhunterspak@gmail.com');
+      
+      // Reset button state
+      submitBtn.disabled = false;
+      btnLabel.style.display = 'flex';
+      btnArrow.style.display = 'flex';
+      btnSpinner.style.display = 'none';
+    }
+  });
+}
+
+// Reset form function
+function resetForm() {
+  form.reset();
+  form.style.display = 'block';
+  successScreen.style.display = 'none';
+  submitBtn.disabled = false;
+  btnLabel.style.display = 'flex';
+  btnArrow.style.display = 'flex';
+  btnSpinner.style.display = 'none';
+  
+  // Reset file upload UI
+  const uploadEmpty = document.getElementById('uploadEmpty');
+  const uploadPreview = document.getElementById('uploadPreview');
+  if (uploadEmpty) uploadEmpty.style.display = 'block';
+  if (uploadPreview) uploadPreview.style.display = 'none';
+  
+  // Reset reference box
+  if (referenceBox) referenceBox.style.display = 'none';
+  
+  // Clear all error messages
+  const errorMessages = form.querySelectorAll('.err-msg');
+  errorMessages.forEach(msg => msg.textContent = '');
+  
+  // Remove invalid classes
+  const invalidFields = form.querySelectorAll('.invalid');
+  invalidFields.forEach(field => field.classList.remove('invalid'));
+  
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
