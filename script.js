@@ -409,14 +409,9 @@ function validateForm() {
     }
   });
   
-  // File upload validation
+  // File upload validation (optional)
   const fileInput = document.getElementById('resumeFile');
-  if (fileInput && !fileInput.files.length) {
-    const fileGroup = fileInput.closest('.field-group');
-    const errorMsg = fileGroup ? fileGroup.querySelector('.err-msg') : null;
-    isValid = false;
-    if (errorMsg) errorMsg.textContent = 'Please upload your resume';
-  } else if (fileInput && fileInput.files.length) {
+  if (fileInput && fileInput.files.length) {
     const file = fileInput.files[0];
     const maxSize = 5 * 1024 * 1024; // 5MB
     if (file.size > maxSize) {
@@ -454,6 +449,17 @@ if (form) {
     // Prepare form data
     const formData = new FormData(form);
     
+    // Remove file attachment since Web3Forms free plan doesn't support file uploads
+    if (formData.has('attachment')) {
+      formData.delete('attachment');
+    }
+    
+    // Log form data for debugging
+    console.log('Form data being submitted:');
+    for (let [key, value] of formData.entries()) {
+      console.log(key, value);
+    }
+    
     try {
       const response = await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
@@ -461,6 +467,8 @@ if (form) {
       });
       
       const result = await response.json();
+      
+      console.log('Web3Forms Response:', result);
       
       if (result.success) {
         // Show success screen
@@ -471,7 +479,8 @@ if (form) {
       }
     } catch (error) {
       console.error('Form submission error:', error);
-      alert('There was an error submitting your application. Please try again or contact us directly at jobhunterspak@gmail.com');
+      console.error('Error details:', error.message);
+      alert('There was an error submitting your application. Please try again or contact us directly at jobhunterspak@gmail.com\n\nError: ' + error.message);
       
       // Reset button state
       submitBtn.disabled = false;
